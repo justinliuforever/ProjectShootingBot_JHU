@@ -1,6 +1,6 @@
 ## Shooting bot
 
-This project uses YOLOv11 for object detection in images and videos.
+This project uses YOLOv11s (update from Yolov5) for object detection in images and videos.
 
 ## Setup
 
@@ -35,8 +35,6 @@ This will process the image and/or video specified in the config file.
 - Press 'q' to quit image detection and move to video detection (if enabled)
 - Press 'q' to quit video detection
 
-
-
 #### Configuration
 
 Adjust the settings in `src/config.py` to we needs. You can set:
@@ -62,18 +60,27 @@ See `requirements.txt` for a list of required packages.
 #### Training tool
 
 Data Resource: roboflow (https://universe.roboflow.com/roboflow-100/csgo-videogame)
+
 Trainning Model: ultralytics+Colab
+
+Monitor: wandb.ai
 
 #### Dependency reference
 
 python3 -m venv venv
+
 Active venv: source venv/bin/activate
 
 (Pip install reference)
-pip install torch torchvision torchaudio
-pip install opencv-python opencv-python-headless
-pip install requests # For dataset fetching
-pip install matplotlib # For visualizations if needed
-git clone https://github.com/ultralytics/yolov5
-pip install -r yolov5/requirements.txt
 
+pip install torch torchvision torchaudio
+
+pip install opencv-python opencv-python-headless
+
+pip install requests # For dataset fetching
+
+pip install matplotlib # For visualizations if needed
+
+git clone https://github.com/ultralytics/yolov5
+
+pip install -r yolov5/requirements.txt
