@@ -1,0 +1,11 @@
+# Configuration settings
+
+MODEL_PATH = "models/model_YOLO11s_102224.pt"
+IMAGE_PATH = "data/ForTest/Pic/1.jpg"
+VIDEO_PATH = "data/ForTest/video/1.mp4"
+
+CONF_THRESHOLD = 0.55
+IOU_THRESHOLD = 0.45
+
+PROCESS_IMAGE = True
+PROCESS_VIDEO = True
