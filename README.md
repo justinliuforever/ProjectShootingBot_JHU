@@ -2,6 +2,10 @@
 
 This project uses YOLOv11s (update from Yolov5) for object detection in images and videos.
 
+[![Watch the video](./video_thum.png)](https://streamable.com/mrcd2r)
+
+
+
 ## Setup
 
 1. Clone the repository:
