@@ -9,16 +9,23 @@ def process_video(video_path, detector):
         print(f"Error: Could not open video file {video_path}")
         return
 
+    # Add FPS calculation
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    frame_delay = int(1000/fps) if fps > 0 else 30
+    
     while True:
         ret, frame = cap.read()
         if not ret:
             break
 
+        # Optional: Resize frame for faster processing
+        # frame = cv2.resize(frame, (640, 480))
+        
         results = detector.detect(frame)
         frame_with_boxes = detector.draw_boxes(frame, results)
         
         cv2.imshow('Detection', frame_with_boxes)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(frame_delay) & 0xFF == ord('q'):
             break
 
     cap.release()
