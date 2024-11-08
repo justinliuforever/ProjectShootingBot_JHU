@@ -17,17 +17,29 @@ class CaptureThread(QThread):
         self.detector = detector
         self.is_running = False
         self.is_capturing = True
+        self.last_time = time.time()
+        self.fps = 0
 
     def run(self):
         while self.is_capturing:
             try:
                 if self.is_running:
+                    # Calculate FPS
+                    current_time = time.time()
+                    self.fps = 1 / (current_time - self.last_time)
+                    self.last_time = current_time
+
                     frame = self.capture_screen()
                     if frame is not None:
                         results = self.detector.detect(frame)
                         frame = self.detector.draw_boxes(frame, results)
+                        # Add FPS counter to frame
+                        cv2.putText(frame, f'FPS: {int(self.fps)}', (10, 30), 
+                                  cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
                         self.frame_ready.emit(frame)
-                time.sleep(0.01)
+                    
+                # Reduce sleep time for higher FPS
+                time.sleep(0.001)  # Changed from 0.01
             except Exception as e:
                 print(f"Processing error: {e}")
                 continue
