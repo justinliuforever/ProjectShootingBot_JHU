@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QVB
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QPoint
 import sys
 import time
+from pynput import keyboard, mouse
 
 class CaptureThread(QThread):
     frame_ready = pyqtSignal(np.ndarray)
@@ -19,6 +20,23 @@ class CaptureThread(QThread):
         self.is_capturing = True
         self.last_time = time.time()
         self.fps = 0
+        
+        # Simplified auto-aim settings
+        self.should_aim = False  # Flag for single click aim
+        
+        # Initialize mouse control
+        pyautogui.PAUSE = 0.005
+        pyautogui.FAILSAFE = False
+        
+        # Initialize keyboard listener
+        self.keyboard_listener = keyboard.Listener(
+            on_press=self.on_key_press,
+            suppress=True  # Prevent key event propagation
+        )
+        self.keyboard_listener.start()
+        
+        # Add detection window size
+        self.detection_window_size = (640, 416)  # Default size matching your model's input
 
     def run(self):
         while self.is_capturing:
@@ -31,18 +49,123 @@ class CaptureThread(QThread):
 
                     frame = self.capture_screen()
                     if frame is not None:
+                        # Detect targets
                         results = self.detector.detect(frame)
-                        frame = self.detector.draw_boxes(frame, results)
-                        # Add FPS counter to frame
-                        cv2.putText(frame, f'FPS: {int(self.fps)}', (10, 30), 
-                                  cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                        
+                        # Handle auto-aim if enabled
+                        if self.should_aim and results:
+                            self.handle_auto_aim(results)
+                        
+                        # Draw interface
+                        frame = self.draw_interface(frame, results)
                         self.frame_ready.emit(frame)
                     
-                # Reduce sleep time for higher FPS
-                time.sleep(0.001)  # Changed from 0.01
+                time.sleep(0.001)
             except Exception as e:
                 print(f"Processing error: {e}")
                 continue
+
+    def handle_auto_aim(self, results):
+        """Test auto-aim by moving to window center"""
+        try:
+            if not self.should_aim:
+                return
+
+            # Get window position and size
+            window_x = self.window.x()
+            window_y = self.window.y()
+            window_width = self.window.width()
+            window_height = self.window.height()
+            
+            # Calculate window center
+            # Add MacOS title bar offset
+            center_x = window_x + (window_width // 2)
+            center_y = window_y + (window_height // 2) + 30  # +30 for MacOS title bar
+            
+            # Add debug prints
+            print(f"Window position: ({window_x}, {window_y})")
+            print(f"Window size: {window_width}x{window_height}")
+            print(f"Moving mouse to window center: ({center_x}, {center_y})")
+            
+            # Move mouse to window center
+            pyautogui.moveTo(
+                center_x,
+                center_y,
+                duration=0.1,
+                tween=pyautogui.easeOutQuad
+            )
+            
+            # Reset flag after moving
+            self.should_aim = False
+
+        except Exception as e:
+            print(f"Auto-aim test error: {str(e)}")
+            self.should_aim = False
+
+    def find_best_target(self, results):
+        """Find the target closest to center of the frame"""
+        if not results:
+            return None
+
+        # Get frame center
+        center_x = self.detection_window_size[0] / 2
+        center_y = self.detection_window_size[1] / 2
+
+        # Find closest target to center
+        closest_target = None
+        min_distance = float('inf')
+
+        for box in results:
+            if len(box) < 4:  # Ensure box has enough coordinates
+                continue
+                
+            box_center_x = (box[0] + box[2]) / 2
+            box_center_y = (box[1] + box[3]) / 2
+            
+            distance = ((box_center_x - center_x) ** 2 + 
+                       (box_center_y - center_y) ** 2) ** 0.5
+            
+            if distance < min_distance:
+                min_distance = distance
+                closest_target = box
+
+        return closest_target
+
+    def draw_interface(self, frame, results):
+        """Draw detection boxes and interface elements"""
+        # Draw original boxes
+        frame = self.detector.draw_boxes(frame, results)
+        
+        # Draw FPS
+        cv2.putText(frame, f'FPS: {int(self.fps)}', (10, 30), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        
+        # Draw auto-aim status
+        status = "Auto-aim: ON" if self.should_aim else "Auto-aim: OFF"
+        cv2.putText(frame, status, (10, 60), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+
+        # Draw target indicator if auto-aim is enabled
+        if self.should_aim and results:
+            target = self.find_best_target(results)
+            if target is not None:
+                center_x = int((target[0] + target[2]) / 2)
+                center_y = int((target[1] + target[3]) / 2)
+                cv2.circle(frame, (center_x, center_y), 5, (0, 0, 255), -1)
+                cv2.putText(frame, f"Target: ({center_x}, {center_y})", 
+                           (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+
+        return frame
+
+    def on_key_press(self, key):
+        """Handle keyboard press events"""
+        try:
+            if key == keyboard.KeyCode.from_char('f'):
+                self.should_aim = True
+                print("Auto-aim triggered")
+        except AttributeError:
+            pass
+        return True
 
     def capture_screen(self):
         try:
