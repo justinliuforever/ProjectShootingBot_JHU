@@ -16,23 +16,47 @@ class TargetDetector:
         return model
 
     def detect(self, image):
+        """
+        Detect targets and return both YOLO results and simplified box coordinates
+        Returns:
+            tuple: (YOLO results, list of [x1,y1,x2,y2] coordinates)
+        """
         with torch.no_grad():
             results = self.model(image, conf=self.conf_threshold, iou=self.iou_threshold, device=self.device)
-        return results
+            
+            # Extract box coordinates for easier processing
+            boxes = []
+            if len(results) > 0:
+                for r in results:
+                    boxes_tensor = r.boxes.cpu().numpy()
+                    for box in boxes_tensor:
+                        # Get box coordinates [x1,y1,x2,y2]
+                        coords = box.xyxy[0].tolist()
+                        boxes.append(coords)
+            
+            return boxes  # Return just the coordinate list
 
-    def draw_boxes(self, image, results):
-        for r in results:
-            boxes = r.boxes.cpu().numpy()
-            for box in boxes:
-                b = box.xyxy[0]
-                c = int(box.cls)
-                conf = float(box.conf)
-                cv2.rectangle(image, (int(b[0]), int(b[1])), (int(b[2]), int(b[3])), (0, 255, 0), 2)
-                cv2.putText(image, f'{r.names[c]} {conf:.2f}', (int(b[0]), int(b[1]) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+    def draw_boxes(self, image, boxes):
+        """Draw boxes on image using simplified coordinates"""
+        for box in boxes:
+            # Draw rectangle
+            cv2.rectangle(image, 
+                         (int(box[0]), int(box[1])), 
+                         (int(box[2]), int(box[3])), 
+                         (0, 255, 0), 2)
+            
+            # Add label (simplified to just show "Target")
+            cv2.putText(image, 
+                       'Target', 
+                       (int(box[0]), int(box[1]) - 10), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 
+                       0.9, 
+                       (0, 255, 0), 
+                       2)
         return image
 
 def process_image(image_path, detector):
     image = cv2.imread(image_path)
-    results = detector.detect(image)
-    image_with_boxes = detector.draw_boxes(image, results)
+    boxes = detector.detect(image)
+    image_with_boxes = detector.draw_boxes(image, boxes)
     return image_with_boxes

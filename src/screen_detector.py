@@ -49,15 +49,15 @@ class CaptureThread(QThread):
 
                     frame = self.capture_screen()
                     if frame is not None:
-                        # Detect targets
-                        results = self.detector.detect(frame)
+                        # Detect targets - now returns box coordinates directly
+                        boxes = self.detector.detect(frame)
                         
                         # Handle auto-aim if enabled
-                        if self.should_aim and results:
-                            self.handle_auto_aim(results)
+                        if self.should_aim and boxes:
+                            self.handle_auto_aim(boxes)
                         
                         # Draw interface
-                        frame = self.draw_interface(frame, results)
+                        frame = self.draw_interface(frame, boxes)
                         self.frame_ready.emit(frame)
                     
                 time.sleep(0.001)
@@ -66,31 +66,35 @@ class CaptureThread(QThread):
                 continue
 
     def handle_auto_aim(self, results):
-        """Test auto-aim by moving to window center"""
+        """Move mouse to detected target position"""
         try:
-            if not self.should_aim:
+            if not self.should_aim or not results:
                 return
 
-            # Get window position and size
+            # Get window position
             window_x = self.window.x()
-            window_y = self.window.y()
-            window_width = self.window.width()
-            window_height = self.window.height()
+            window_y = self.window.y() + 30  # MacOS title bar offset
+
+            # Get the first detected target
+            target = results[0]  # Format: [x1, y1, x2, y2]
             
-            # Calculate window center
-            # Add MacOS title bar offset
-            center_x = window_x + (window_width // 2)
-            center_y = window_y + (window_height // 2) + 30  # +30 for MacOS title bar
+            # Calculate target center in detection frame
+            target_center_x = (target[0] + target[2]) / 2  # Average of x1 and x2
+            target_center_y = (target[1] + target[3]) / 2  # Average of y1 and y2
+            
+            # Convert to screen coordinates
+            screen_x = window_x + target_center_x
+            screen_y = window_y + target_center_y
             
             # Add debug prints
             print(f"Window position: ({window_x}, {window_y})")
-            print(f"Window size: {window_width}x{window_height}")
-            print(f"Moving mouse to window center: ({center_x}, {center_y})")
+            print(f"Target center in frame: ({target_center_x}, {target_center_y})")
+            print(f"Moving to screen position: ({screen_x}, {screen_y})")
             
-            # Move mouse to window center
+            # Move mouse to target
             pyautogui.moveTo(
-                center_x,
-                center_y,
+                int(screen_x),
+                int(screen_y),
                 duration=0.1,
                 tween=pyautogui.easeOutQuad
             )
@@ -99,7 +103,7 @@ class CaptureThread(QThread):
             self.should_aim = False
 
         except Exception as e:
-            print(f"Auto-aim test error: {str(e)}")
+            print(f"Auto-aim error: {str(e)}")
             self.should_aim = False
 
     def find_best_target(self, results):
