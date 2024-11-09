@@ -28,10 +28,10 @@ class CaptureThread(QThread):
         pyautogui.PAUSE = 0.005
         pyautogui.FAILSAFE = False
         
-        # Initialize keyboard listener
+        # Initialize keyboard listener without suppressing other keys
         self.keyboard_listener = keyboard.Listener(
             on_press=self.on_key_press,
-            suppress=True  # Prevent key event propagation
+            suppress=False  # Changed from True to False
         )
         self.keyboard_listener.start()
         
@@ -167,9 +167,10 @@ class CaptureThread(QThread):
             if key == keyboard.KeyCode.from_char('f'):
                 self.should_aim = True
                 print("Auto-aim triggered")
+            # 如果需要监听其他按键，可以在这里添加
         except AttributeError:
             pass
-        return True
+        return True  # 继续传递事件给其他应用程序
 
     def capture_screen(self):
         try:
