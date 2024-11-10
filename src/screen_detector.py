@@ -78,9 +78,11 @@ class CaptureThread(QThread):
             # Get the first detected target
             target = results[0]  # Format: [x1, y1, x2, y2]
             
-            # Calculate target center in detection frame
-            target_center_x = (target[0] + target[2]) / 2  # Average of x1 and x2
-            target_center_y = (target[1] + target[3]) / 2  # Average of y1 and y2
+            # Calculate target position with vertical offset
+            target_center_x = (target[0] + target[2]) / 2
+            # 垂直位置往上偏移
+            target_height = target[3] - target[1]
+            target_center_y = target[1] + (target_height * 0.25)  # 调整这个比例来改变瞄准高度
             
             # Convert to screen coordinates
             screen_x = window_x + target_center_x
@@ -164,13 +166,12 @@ class CaptureThread(QThread):
     def on_key_press(self, key):
         """Handle keyboard press events"""
         try:
-            if key == keyboard.KeyCode.from_char('f'):
+            if hasattr(key, 'char') and key.char == '[':  # 改为 '[' 键触发
                 self.should_aim = True
                 print("Auto-aim triggered")
-            # 如果需要监听其他按键，可以在这里添加
         except AttributeError:
             pass
-        return True  # 继续传递事件给其他应用程序
+        return True
 
     def capture_screen(self):
         try:
