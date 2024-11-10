@@ -1,67 +1,132 @@
-## Shooting bot
+## AI Aim Assistant
 
-This project uses YOLOv11s (update from Yolov5) for object detection in images and videos.
+This project implements an AI-powered aim assistance system using computer vision and real-time object detection. It uses YOLO for target detection and provides a transparent overlay window for game integration.
 
 [![Watch the video](./video_thum.png)](https://streamable.com/mrcd2r)
 
 
 
-## Setup
+### Key Features
+
+- Real-time target detection using YOLO
+- Transparent overlay window for game integration
+- Configurable aim assistance with customizable parameters
+- Smooth mouse movement with acceleration control
+- FPS counter and performance monitoring
+- Resizable and draggable interface
+
+
+
+### Technical Implementation
+
+#### Detection System
+- Uses YOLO for real-time object detection
+- Processes screen captures in real-time
+- Optimized for gaming performance with GPU acceleration when available
+- Configurable confidence and IOU thresholds
+
+#### Aim Assistance Logic
+1. **Screen Capture**
+   - Captures game screen within the overlay window
+   - Processes frames in real-time using a separate thread
+   - Maintains high FPS for smooth operation
+
+2. **Target Detection**
+   - Detects potential targets using YOLOv8
+   - Filters targets based on confidence scores
+   - Prioritizes targets based on distance to center
+
+3. **Aim Calculation**
+   - Calculates optimal aim point (typically upper body/head area)
+   - Applies vertical offset for better target acquisition
+   - Converts game coordinates to screen coordinates
+
+4. **Mouse Control**
+   - Implements smooth mouse movement using acceleration curves
+   - Uses pyautogui for precise mouse control
+   - Configurable movement speed and smoothing
+
+5. **User Interface**
+   - Transparent overlay window
+   - Real-time FPS counter
+   - Visual feedback for detected targets
+   - Status indicators for aim assistance
+   
+   
+
+### Setup
 
 1. Clone the repository:
-
+   ```bash
+   git clone <repository-url>
+   cd <project-directory>
    ```
-   git clone ....
-   cd ...
-   ```
 
-2. Create and activate a virtual environment:
-
-   ```
+2. Create and activate virtual environment:
+   ```bash
    python3 -m venv venv
-   source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
-
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-3. Install the required packages:
-   ```
+3. Install requirements:
+   ```bash
    pip install -r requirements.txt
    ```
 
-## Running the Application
 
-To run the main application:
 
-`python src/main.py`
+### Usage
 
-This will process the image and/or video specified in the config file.
+#### main.py( For video test )
 
-- Press 'q' to quit image detection and move to video detection (if enabled)
-- Press 'q' to quit video detection
+1. Run the main application:
+   ```bash
+   python src/main.py
+   ```
 
-#### Configuration
+2. press 'q' to quit
 
-Adjust the settings in `src/config.py` to we needs. You can set:
+#### screen_detector.py( For aiming bot )
 
-- Model path
-- Image and video paths for processing
-- Confidence and IOU thresholds
-- Whether to process images, videos, or both
+1. Run the main application:
 
-#### project Structure
+   ```bash
+   python src/screen_detector.py.py
+   ```
 
-- `src/`: Contains the main source code
-  - `main.py`: Main script to run the application
-  - `detect_targets.py`: Contains the TargetDetector class and related functions
-  - `config.py`: Configuration settings
-- `models/`: Store mode (currently we use YOLOv11s model here)
-- `data/`: Contains input images and videos for testing
+2. Position the overlay window over your game
 
-#### Requirements
+3. Press 'Start Detection' to begin target detection
 
-See `requirements.txt` for a list of required packages.
+4. Use '[' key to trigger aim assistance when targets are detected
 
-#### Training tool
+### 
+
+### Configuration
+
+Adjust settings in `src/config.py`:
+- Model path and parameters
+- Detection thresholds
+- Aim sensitivity and smoothing
+- Window size and opacity
+
+
+
+### Project Structure
+
+```
+├── src/
+│   ├── main.py              # Main application entry
+│   ├── detect_targets.py    # Target detection implementation
+│   ├── screen_detector.py   # Screen capture and aim logic
+│   └── config.py           # Configuration settings
+├── models/                  # YOLOv8 model files
+└── requirements.txt        # Project dependencies
+```
+
+
+
+#### **Training tool**
 
 Data Resource: roboflow (https://universe.roboflow.com/roboflow-100/csgo-videogame)
 
@@ -69,7 +134,9 @@ Trainning Model: ultralytics+Colab
 
 Monitor: wandb.ai
 
-#### Dependency reference
+
+
+#### **Dependency reference**
 
 python3 -m venv venv
 

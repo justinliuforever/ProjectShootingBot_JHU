@@ -28,10 +28,11 @@ class CaptureThread(QThread):
         pyautogui.PAUSE = 0.005
         pyautogui.FAILSAFE = False
         
-        # Initialize keyboard listener without suppressing other keys
+        # Initialize keyboard listener with both press and release handlers
         self.keyboard_listener = keyboard.Listener(
             on_press=self.on_key_press,
-            suppress=False  # Changed from True to False
+            on_release=self.on_key_release,  # Add release handler
+            suppress=False
         )
         self.keyboard_listener.start()
         
@@ -75,34 +76,40 @@ class CaptureThread(QThread):
             window_x = self.window.x()
             window_y = self.window.y() + 30  # MacOS title bar offset
 
-            # Get the first detected target
-            target = results[0]  # Format: [x1, y1, x2, y2]
-            
+            # Get the closest target to center
+            target = self.find_best_target(results)
+            if not target:
+                return
+                
             # Calculate target position with vertical offset
             target_center_x = (target[0] + target[2]) / 2
-            # 垂直位置往上偏移
             target_height = target[3] - target[1]
-            target_center_y = target[1] + (target_height * 0.25)  # 调整这个比例来改变瞄准高度
+            target_center_y = target[1] + (target_height * 0.25)  # Aim at upper portion of target
             
             # Convert to screen coordinates
             screen_x = window_x + target_center_x
             screen_y = window_y + target_center_y
             
-            # Add debug prints
-            print(f"Window position: ({window_x}, {window_y})")
-            print(f"Target center in frame: ({target_center_x}, {target_center_y})")
-            print(f"Moving to screen position: ({screen_x}, {screen_y})")
+            # Get current mouse position
+            current_x, current_y = pyautogui.position()
             
-            # Move mouse to target
+            # Calculate distance to target
+            distance = ((screen_x - current_x) ** 2 + (screen_y - current_y) ** 2) ** 0.5
+            
+            # Adjust movement speed based on distance
+            # Shorter distance = faster movement
+            duration = min(max(distance / 3000, 0.01), 0.1)
+            
+            # Move mouse to target with dynamic duration
             pyautogui.moveTo(
                 int(screen_x),
                 int(screen_y),
-                duration=0.1,
+                duration=duration,  # Dynamic duration based on distance
                 tween=pyautogui.easeOutQuad
             )
             
-            # Reset flag after moving
-            self.should_aim = False
+            # Don't reset should_aim flag to allow continuous tracking
+            # self.should_aim = False  # Removed this line
 
         except Exception as e:
             print(f"Auto-aim error: {str(e)}")
@@ -166,9 +173,19 @@ class CaptureThread(QThread):
     def on_key_press(self, key):
         """Handle keyboard press events"""
         try:
-            if hasattr(key, 'char') and key.char == '[':  # 改为 '[' 键触发
+            if hasattr(key, 'char') and key.char == '[':
                 self.should_aim = True
-                print("Auto-aim triggered")
+                print("Auto-aim ON")
+        except AttributeError:
+            pass
+        return True
+
+    def on_key_release(self, key):
+        """Handle keyboard release events"""
+        try:
+            if hasattr(key, 'char') and key.char == '[':
+                self.should_aim = False
+                print("Auto-aim OFF")
         except AttributeError:
             pass
         return True

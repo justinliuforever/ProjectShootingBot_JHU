@@ -27,11 +27,17 @@ py-cpuinfo==9.0.0
 PyAutoGUI==0.9.54
 PyGetWindow==0.0.9
 PyMsgBox==1.0.9
+pynput==1.7.7
 pyobjc-core==10.3.1
+pyobjc-framework-ApplicationServices==10.3.1
 pyobjc-framework-Cocoa==10.3.1
+pyobjc-framework-CoreText==10.3.1
 pyobjc-framework-Quartz==10.3.1
 pyparsing==3.2.0
 pyperclip==1.9.0
+PyQt5==5.15.11
+PyQt5-Qt5==5.15.15
+PyQt5_sip==12.15.0
 PyRect==0.2.0
 PyScreeze==1.0.1
 python-dateutil==2.9.0.post0
@@ -46,6 +52,7 @@ six==1.16.0
 smmap==5.0.1
 sympy==1.13.1
 thop==0.1.1.post2209072238
+tk==0.1.0
 torch==2.5.0
 torchaudio==2.5.0
 torchvision==0.20.0
