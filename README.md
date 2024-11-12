@@ -2,9 +2,7 @@
 
 This project implements an AI-powered aim assistance system using computer vision and real-time object detection. It uses YOLO for target detection and provides a transparent overlay window for game integration.
 
-[![Watch the video](./video_thum.png)](https://streamable.com/mrcd2r)
-
-
+[![Watch the video](DisplayPicVideo/detectObject.png)](https://youtu.be/jmP-_HqtddQ)
 
 ### Key Features
 
@@ -15,33 +13,49 @@ This project implements an AI-powered aim assistance system using computer visio
 - FPS counter and performance monitoring
 - Resizable and draggable interface
 
+## Features Demonstration
 
+### Object Detection
+
+![Object Detection](DisplayPicVideo/detectObject2.png)
+The system detects and marks targets in the upper left corner of the screen.
+
+### Aim and Shoot
+
+![Aim and Shoot](DisplayPicVideo/pressAimButton_Shoot2.png)
+The red dot in the upper left corner indicates the target position where the crosshair will move. The program automatically controls the mouse movement to track and aim at the detected target.
 
 ### Technical Implementation
 
 #### Detection System
+
 - Uses YOLO for real-time object detection
 - Processes screen captures in real-time
 - Optimized for gaming performance with GPU acceleration when available
 - Configurable confidence and IOU thresholds
 
 #### Aim Assistance Logic
+
 1. **Screen Capture**
+
    - Captures game screen within the overlay window
    - Processes frames in real-time using a separate thread
    - Maintains high FPS for smooth operation
 
 2. **Target Detection**
+
    - Detects potential targets using YOLOv8
    - Filters targets based on confidence scores
    - Prioritizes targets based on distance to center
 
 3. **Aim Calculation**
+
    - Calculates optimal aim point (typically upper body/head area)
    - Applies vertical offset for better target acquisition
    - Converts game coordinates to screen coordinates
 
 4. **Mouse Control**
+
    - Implements smooth mouse movement using acceleration curves
    - Uses pyautogui for precise mouse control
    - Configurable movement speed and smoothing
@@ -51,18 +65,18 @@ This project implements an AI-powered aim assistance system using computer visio
    - Real-time FPS counter
    - Visual feedback for detected targets
    - Status indicators for aim assistance
-   
-   
 
 ### Setup
 
 1. Clone the repository:
+
    ```bash
    git clone <repository-url>
    cd <project-directory>
    ```
 
 2. Create and activate virtual environment:
+
    ```bash
    python3 -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
@@ -73,13 +87,12 @@ This project implements an AI-powered aim assistance system using computer visio
    pip install -r requirements.txt
    ```
 
-
-
 ### Usage
 
 #### main.py( For video test )
 
 1. Run the main application:
+
    ```bash
    python src/main.py
    ```
@@ -100,17 +113,16 @@ This project implements an AI-powered aim assistance system using computer visio
 
 4. Use '[' key to trigger aim assistance when targets are detected
 
-### 
+   
 
 ### Configuration
 
 Adjust settings in `src/config.py`:
+
 - Model path and parameters
 - Detection thresholds
 - Aim sensitivity and smoothing
 - Window size and opacity
-
-
 
 ### Project Structure
 
@@ -124,8 +136,6 @@ Adjust settings in `src/config.py`:
 └── requirements.txt        # Project dependencies
 ```
 
-
-
 #### **Training tool**
 
 Data Resource: roboflow (https://universe.roboflow.com/roboflow-100/csgo-videogame)
@@ -133,8 +143,6 @@ Data Resource: roboflow (https://universe.roboflow.com/roboflow-100/csgo-videoga
 Trainning Model: ultralytics+Colab
 
 Monitor: wandb.ai
-
-
 
 #### **Dependency reference**
 
